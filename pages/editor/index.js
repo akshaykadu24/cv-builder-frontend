@@ -7,14 +7,14 @@ import VerifyCookies from '@/components/VerifyCookies'
 import { Button, MenuItem, Select, Box, patch } from '@mui/material'
 import { useRouter } from 'next/router'
 import React, { useEffect, useState } from 'react'
-import cookie from 'cookie';
+import { parse } from 'cookie';
 import handleDownload from '@/components/DownloadPDF'
 
 
 export async function getServerSideProps(context) {
     const { query, req } = context
 
-    const cookies = cookie.parse(req.headers.cookie || '');
+    const cookies = parse(req.headers.cookie || '');
     const token = cookies.ResumeToken;
     let result = await VerifyCookies(context)
     if (result?.success) {

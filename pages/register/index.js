@@ -3,14 +3,14 @@
 import Navbar from '@/components/Navbar';
 import { useRouter } from 'next/router';
 import React, { useState } from 'react';
-import cookie from 'cookie';
+import { parse } from 'cookie';
 import FieldValidate from '@/components/FieldValidate';
 
 
 export async function getServerSideProps(context) {
 
     const { req } = context;
-    const cookies = cookie.parse(req.headers.cookie || '');
+    const cookies = parse(req.headers.cookie || '');
     const token = cookies.ResumeToken;
 
     console.log(token, "token")
