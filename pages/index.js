@@ -2,9 +2,9 @@ import Head from "next/head";
 import Image from "next/image";
 
 import Navbar from "@/components/Navbar";
-import { useEffect, useState } from "react";
-import cookie from 'cookie';
-import VerifyCookies from "@/components/VerifyCookies";
+import { useState } from "react";
+import { parse } from 'cookie';
+
 import ClassicTemplate from "@/components/templates/ClassicTemplate";
 import ModernTemplate from "@/components/templates/ModernTemplate";
 import SidebarTemplate from "@/components/templates/SidebarTemplate";
@@ -14,7 +14,7 @@ import { Button } from "@mui/material";
 
 export async function getServerSideProps(context) {
   const { req } = context;
-  const cookies = cookie.parse(req.headers.cookie || '');
+  const cookies = parse(req.headers.cookie || '');
   const token = cookies.ResumeToken;
 
   let res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}fetchUserResume`, {
