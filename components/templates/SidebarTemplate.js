@@ -1,225 +1,127 @@
 import React from 'react';
+import { dateRange, formatAddress, getFontConfig, joinTech, levelToPercent } from './templateUtils';
 
+const SIDEBAR = '#1e293b';
+const ACCENT = '#38bdf8';
+
+/** Full-height dark profile sidebar with a clean white career column. */
 const SidebarTemplate = ({ data }) => {
     const {
-        basicDetails = {},
-        education = [],
-        experience = [],
-        project = [],
-        skill = [],
-        socialProfile = []  // always an array, no need to check
+        basicDetails = {}, education = [], experience = [],
+        project = [], skill = [], socialProfile = [],
     } = data || {};
 
-    const fontConfig = {
-        nameSize: data?.fontConfig?.nameSize || 32,
-        introSize: data?.fontConfig?.introSize || 14,
-        contactSize: data?.fontConfig?.contactSize || 12,
-        headingSize: data?.fontConfig?.headingSize || 16,
-        itemSize: data?.fontConfig?.itemSize || 12,
-        minHeight: data?.fontConfig?.minHeight || '950px',
-        bodyFont: data?.fontConfig?.bodyFont || 'Arial, sans-serif'
-    };
+    const font = getFontConfig(data, {
+        nameSize: 30, headingSize: 15, itemSize: 12,
+        bodyFont: 'Arial, Helvetica, sans-serif',
+    });
 
-    return (
-        <div
-            style={{
-                display: 'flex',
-                maxWidth: 1000,
-                margin: '10px auto',
-                border: '1px solid #ccc',
-                borderRadius: 8,
-                fontFamily: fontConfig.bodyFont,
-                overflow: 'hidden',
-                minHeight: fontConfig.minHeight,
-                boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-                color: '#222',
-                lineHeight: 1.15
-            }}
-        >
-            {/* Sidebar */}
-            <div
-                style={{
-                    backgroundColor: '#2c3e50',
-                    color: 'white',
-                    padding: 20,
-                    width: '35%',
-                    display: 'flex',
-                    flexDirection: 'column'
-                }}
-            >
-                <div>
-                    {basicDetails?.image && <img src={basicDetails?.image} alt="Preview" style={{ width: 100, height: 100, borderRadius: '50%', marginTop: 10 }} />}
+    const MainHeading = ({ children }) => <div style={{
+        fontSize: font.headingSize, fontWeight: 800, color: SIDEBAR,
+        textAlign: font.headingAlign,
+        textTransform: 'uppercase', letterSpacing: 1.3,
+        borderBottom: `2px solid ${ACCENT}`, paddingBottom: 4, marginBottom: 11,
+    }}>{children}</div>;
 
-                </div>
-                <h1
-                    style={{
-                        fontSize: fontConfig.nameSize,
-                        marginBottom: 8,
-                        lineHeight: 1.1,
-                        fontWeight: 'bold'
-                    }}
-                >
-                    {basicDetails?.name || 'Your Name'}
-                </h1>
-                <p
-                    style={{
-                        fontSize: fontConfig.introSize,
-                        fontStyle: 'italic',
-                        color: '#ecf0f1',
-                        marginBottom: 20,
-                        lineHeight: 1.1
-                    }}
-                >
-                    {basicDetails?.intro || 'A short introduction about yourself goes here.'}
-                </p>
+    const SideHeading = ({ children }) => <div style={{
+        fontSize: font.headingSize - 1, fontWeight: 700, color: '#fff',
+        textAlign: font.headingAlign,
+        textTransform: 'uppercase', letterSpacing: 1.2,
+        borderBottom: '1px solid #64748b', paddingBottom: 4, marginBottom: 9,
+    }}>{children}</div>;
 
-                <div style={{ fontSize: fontConfig.contactSize, lineHeight: 1.1, marginBottom: 24 }}>
-                    <p style={{ margin: '4px 0' }}>
-                        <strong>Email:</strong> {basicDetails?.email || 'email@example.com'}
-                    </p>
-                    <p style={{ margin: '4px 0' }}>
-                        <strong>Phone:</strong> {basicDetails?.phone || '+1234567890'}
-                    </p>
-                    <p style={{ margin: '4px 0' }}>
-                        <strong>Address:</strong> {`${basicDetails?.address || ''}, ${basicDetails?.city || ''}, ${basicDetails?.state || ''} - ${basicDetails?.pincode || ''}`}
-                    </p>
-                </div>
+    const Empty = ({ dark = false }) => <div style={{ fontSize: font.itemSize, color: dark ? '#94a3b8' : '#9ca3af' }}>Not provided</div>;
 
+    const MainEntry = ({ title, subtitle, right, meta, body }) => <div style={{ marginBottom: 13 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <div style={{ fontSize: font.itemSize + 1, fontWeight: 700, color: '#0f172a', paddingRight: 8 }}>{title}</div>
+            {right ? <div style={{ fontSize: font.itemSize - 1, color: '#64748b', whiteSpace: 'nowrap' }}>{right}</div> : null}
+        </div>
+        {subtitle ? <div style={{ fontSize: font.itemSize, color: '#0284c7', fontWeight: 700, marginTop: 1 }}>{subtitle}</div> : null}
+        {meta ? <div style={{ fontSize: font.itemSize - 0.5, color: '#64748b', marginTop: 2 }}>{meta}</div> : null}
+        {body ? <div style={{ fontSize: font.itemSize, color: '#334155', lineHeight: 1.45, marginTop: 3 }}>{body}</div> : null}
+    </div>;
 
+    return <div style={{
+        display: 'flex', maxWidth: 800, margin: '10px auto',
+        minHeight: font.minHeight, fontFamily: font.bodyFont,
+        color: '#1f2937', backgroundColor: '#fff', lineHeight: 1.3,
+        border: '1px solid #cbd5e1', overflow: 'hidden',
+    }}>
+        <div style={{ width: '34%', backgroundColor: SIDEBAR, color: '#e2e8f0', padding: 22, minWidth: 0 }}>
+            {basicDetails.image ? <div style={{ textAlign: 'center', marginBottom: 15 }}>
+                <img src={basicDetails.image} alt="" style={{
+                    width: 104, height: 104, objectFit: 'cover', borderRadius: '50%',
+                    border: `4px solid ${ACCENT}`,
+                }} />
+            </div> : null}
 
-                {/* Social Profiles */}
-                <div>
-                    <h3
-                        style={{
-                            fontSize: fontConfig.headingSize,
-                            borderBottom: '1px solid #fff',
-                            paddingBottom: 4,
-                            marginBottom: 8,
-                            lineHeight: 1.1
-                        }}
-                    >
-                        Social Profiles
-                    </h3>
-                    {socialProfile.length > 0 ? (
-                        socialProfile.map((profile, i) => (
-                            <div
-                                key={i}
-                                style={{
-                                    fontSize: fontConfig.itemSize,
-                                    marginBottom: 6,
-                                    lineHeight: 1.1,
-                                    wordBreak: 'break-word'
-                                }}
-                            >
-                                <strong>{profile.platform || "Platform"}:</strong>{' '}
-                                {profile.url ? (
-                                    <a href={profile.url} target="_blank" rel="noreferrer" style={{ color: '#ecf0f1' }}>
-                                        {profile.url}
-                                    </a>
-                                ) : (
-                                    "No URL"
-                                )}
-                            </div>
-                        ))
-                    ) : (
-                        <div style={{ fontSize: fontConfig.itemSize, color: '#ccc', lineHeight: 1.1 }}>
-                            No social profile provided
-                        </div>
-                    )}
-                </div>
+            <div style={{ fontSize: font.nameSize, fontWeight: 800, color: '#fff', lineHeight: 1.1, wordBreak: 'break-word' }}>
+                {basicDetails.name || 'Your Name'}
+            </div>
+            <div style={{ fontSize: font.introSize, color: '#cbd5e1', marginTop: 8, lineHeight: 1.45 }}>
+                {basicDetails.intro || 'A short introduction about yourself goes here.'}
             </div>
 
-            {/* Main Content */}
-            <div
-                style={{
-                    padding: 20,
-                    width: '65%',
-                    backgroundColor: '#fff',
-                    color: '#222',
-                    lineHeight: 1.15,
-                    overflowY: 'auto'
-                }}
-            >
-                <Section
-                    title="Education"
-                    items={education}
-                    titleSize={fontConfig.headingSize}
-                    itemSize={fontConfig.itemSize}
-                    render={(e) =>
-                        `${e.degree || '-'}, ${e.institution || '-'} (${e.percentage || '-'}%), ${e.startYear || '-'} - ${e.endYear || '-'}, ${e.location || '-'}`
-                    }
-                />
+            <div style={{ marginTop: 22 }}>
+                <SideHeading>Contact</SideHeading>
+                {[basicDetails.email || 'email@example.com', basicDetails.phone, formatAddress(basicDetails)].filter(Boolean).map((text, i) =>
+                    <div key={i} style={{ fontSize: font.contactSize, lineHeight: 1.45, marginBottom: 7, wordBreak: 'break-word' }}>{text}</div>
+                )}
+            </div>
 
-                <Section
-                    title="Experience"
-                    items={experience}
-                    titleSize={fontConfig.headingSize}
-                    itemSize={fontConfig.itemSize}
-                    render={(e) =>
-                        `${e.position || '-'} @ ${e.organization || '-'}, ${e.joiningLocation || '-'} (${e.joiningDate || '-'} - ${e.leavingDate || 'Present'}), CTC: ${e.CTC || '-'}, Tech: ${Array.isArray(e.technologies) ? e.technologies.join(', ') : e.technologies || '-'}`
-                    }
-                />
+            <div style={{ marginTop: 22 }}>
+                <SideHeading>Skills</SideHeading>
+                {skill.length === 0 ? <Empty dark /> : skill.map((item, i) => <div key={i} style={{ marginBottom: 9 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: font.itemSize, marginBottom: 3 }}>
+                        <span>{item.skillName || '-'}</span><span style={{ color: '#94a3b8' }}>{item.level ? `${item.level}%` : ''}</span>
+                    </div>
+                    <div style={{ height: 5, backgroundColor: '#475569', borderRadius: 3 }}>
+                        <div style={{ height: 5, width: `${levelToPercent(item.level)}%`, backgroundColor: ACCENT, borderRadius: 3 }} />
+                    </div>
+                </div>)}
+            </div>
 
-                <Section
-                    title="Projects"
-                    items={project}
-                    titleSize={fontConfig.headingSize}
-                    itemSize={fontConfig.itemSize}
-                    render={(p) => (
-                        <>
-                            <strong>{p.title || '-'}</strong>,{" "}<br />
-                            <strong>Team:</strong> {p.teamSize || '-'},{" "}<br />
-                            <strong>Duration:</strong> {p.duration || '-'},{" "}<br />
-                            <strong>Tech:</strong>{" "}
-                            {Array.isArray(p.technologies) ? p.technologies.join(', ') : p.technologies || '-'},{" "}<br />
-                            <strong>Desc:</strong> {p.description || '-'}
-                        </>
-                    )}
-                />
-                <div style={{ marginBottom: 24 }}>
-                    <h3
-                        style={{
-                            fontSize: fontConfig.headingSize,
-                            borderBottom: '1px solid #fff',
-                            paddingBottom: 4,
-                            marginBottom: 8,
-                            lineHeight: 1.1
-                        }}
-                    >
-                        Skills
-                    </h3>
-                    <ul style={{ paddingLeft: 20, fontSize: fontConfig.itemSize, margin: 0, lineHeight: 1.1 }}>
-                        {skill.length > 0 ? (
-                            skill.map((s, i) => (
-                                <li key={i} style={{ marginBottom: 6 }}>
-                                    {s.skillName || '-'} ({s.level || '-'}%)
-                                </li>
-                            ))
-                        ) : (
-                            <li style={{ color: '#ccc' }}>No skills provided</li>
-                        )}
-                    </ul>
-                </div>
+            <div style={{ marginTop: 22 }}>
+                <SideHeading>Profiles</SideHeading>
+                {socialProfile.length === 0 ? <Empty dark /> : socialProfile.map((item, i) => <div key={i} style={{
+                    fontSize: font.itemSize, marginBottom: 8, wordBreak: 'break-word',
+                }}>
+                    <div style={{ fontWeight: 700, color: '#fff' }}>{item.platform || 'Platform'}</div>
+                    <div style={{ color: ACCENT }}>{item.url || 'No URL'}</div>
+                </div>)}
             </div>
         </div>
-    );
-};
 
-const Section = ({ title, items = [], render, titleSize, itemSize }) => (
-    <div style={{ marginBottom: 20 }}>
-        <h3 style={{ fontSize: titleSize, color: '#34495e', marginBottom: 10, lineHeight: 1.1 }}>{title}</h3>
-        {items.length === 0 ? (
-            <p style={{ fontSize: itemSize, color: '#999', lineHeight: 1.1 }}>No data provided</p>
-        ) : (
-            <ul style={{ paddingLeft: 20, fontSize: itemSize, margin: 0, lineHeight: 1.1 }}>
-                {items.map((item, i) => (
-                    <li key={i} style={{ marginBottom: 6 }}>
-                        {render(item)}
-                    </li>
-                ))}
-            </ul>
-        )}
-    </div>
-);
+        <div style={{ width: '66%', padding: 24, minWidth: 0 }}>
+            <div style={{ marginBottom: 22 }}>
+                <MainHeading>Experience</MainHeading>
+                {experience.length === 0 ? <Empty /> : experience.map((item, i) => <MainEntry
+                    key={i} title={item.position || '-'} subtitle={item.organization || '-'}
+                    right={dateRange(item.joiningDate, item.leavingDate)}
+                    meta={[item.joiningLocation, item.CTC ? `CTC: ${item.CTC}` : '', joinTech(item.technologies)].filter(Boolean).join('  ·  ')}
+                />)}
+            </div>
+
+            <div style={{ marginBottom: 22 }}>
+                <MainHeading>Education</MainHeading>
+                {education.length === 0 ? <Empty /> : education.map((item, i) => <MainEntry
+                    key={i} title={item.degree || '-'} subtitle={item.institution || '-'}
+                    right={dateRange(item.startYear, item.endYear, '')}
+                    meta={[item.percentage ? `${item.percentage}%` : '', item.location].filter(Boolean).join('  ·  ')}
+                />)}
+            </div>
+
+            <div>
+                <MainHeading>Projects</MainHeading>
+                {project.length === 0 ? <Empty /> : project.map((item, i) => <MainEntry
+                    key={i} title={item.title || '-'} right={item.duration}
+                    meta={[item.teamSize ? `Team of ${item.teamSize}` : '', joinTech(item.technologies)].filter(Boolean).join('  ·  ')}
+                    body={item.description}
+                />)}
+            </div>
+        </div>
+    </div>;
+};
 
 export default SidebarTemplate;

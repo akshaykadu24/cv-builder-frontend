@@ -1,245 +1,121 @@
 import React from 'react';
-import { Box, Typography, Divider, Paper, Grid } from '@mui/material';
+import { dateRange, formatAddress, getFontConfig, joinTech } from './templateUtils';
 
+/** Traditional one-column resume with serif typography and conservative rules. */
 const ClassicTemplate = ({ data }) => {
     const {
-        basicDetails = {},
-        education = [],
-        experience = [],
-        project = [],
-        skill = [],
-        socialProfile = []
+        basicDetails = {}, education = [], experience = [],
+        project = [], skill = [], socialProfile = [],
     } = data || {};
 
-    const fontConfig = {
-        nameSize: data?.fontConfig?.nameSize || 34,
-        introSize: data?.fontConfig?.introSize || 14,
-        contactSize: data?.fontConfig?.contactSize || 12,
-        headingSize: data?.fontConfig?.headingSize || 15,
-        itemSize: data?.fontConfig?.itemSize || 14,
-        minHeight: data?.fontConfig?.minHeight || '950px',
-        bodyFont: data?.fontConfig?.bodyFont || 'Georgia, serif'
-    };
+    const font = getFontConfig(data, {
+        nameSize: 34, headingSize: 15, itemSize: 13,
+        bodyFont: 'Georgia, "Times New Roman", serif',
+    });
+
+    const Heading = ({ children }) => (
+        <div style={{
+            fontSize: font.headingSize, fontWeight: 700, color: '#1f2937',
+            textAlign: font.headingAlign,
+            textTransform: 'uppercase', letterSpacing: 1.4,
+            borderBottom: '1px solid #9ca3af', paddingBottom: 4, marginBottom: 10,
+        }}>
+            {children}
+        </div>
+    );
+
+    const Empty = () => <div style={{ fontSize: font.itemSize, color: '#9ca3af' }}>Not provided</div>;
+
+    const Entry = ({ title, subtitle, right, meta, body }) => (
+        <div style={{ marginBottom: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                <div style={{ fontSize: font.itemSize + 1, fontWeight: 700, paddingRight: 10 }}>{title}</div>
+                {right ? <div style={{ fontSize: font.itemSize - 1, color: '#6b7280', whiteSpace: 'nowrap' }}>{right}</div> : null}
+            </div>
+            {subtitle ? <div style={{ fontSize: font.itemSize, fontStyle: 'italic', color: '#4b5563', marginTop: 1 }}>{subtitle}</div> : null}
+            {meta ? <div style={{ fontSize: font.itemSize - 0.5, color: '#6b7280', marginTop: 2 }}>{meta}</div> : null}
+            {body ? <div style={{ fontSize: font.itemSize, color: '#374151', lineHeight: 1.45, marginTop: 3 }}>{body}</div> : null}
+        </div>
+    );
+
+    const address = formatAddress(basicDetails);
+    const contact = [basicDetails.email || 'email@example.com', basicDetails.phone, address].filter(Boolean);
 
     return (
-        <Paper
-            elevation={2}
-            sx={{
-                padding: 2,             // tight padding
-                maxWidth: 700,
-                margin: '10px auto',   // tight margin
-                fontFamily: fontConfig.bodyFont,
-                backgroundColor: '#fafafa',
-                color: '#222',
-                lineHeight: 1.15,     // tight line height globally
-                minHeight: fontConfig.minHeight,
-            }}
-            id="resume-content"
-        >
-            <div style={{ display: "flex", }}>
-                <div>
-
-                    {/* Header */}
-                    <Box textAlign="center" mb={2}>
-                        <Typography
-                            variant="h3"
-                            sx={{
-                                fontSize: fontConfig.nameSize,
-                                fontWeight: 'bold',
-                                letterSpacing: 1,
-                                color: '#111',
-                                lineHeight: 1.1,
-                                mb: 0.5
-                            }}
-                        >
-                            {basicDetails?.name || 'Your Name'}
-                        </Typography>
-                        <Typography
-                            sx={{
-                                fontSize: fontConfig.introSize,
-                                fontStyle: 'italic',
-                                color: '#555',
-                                lineHeight: 1.1
-                            }}
-                        >
-                            {basicDetails?.intro || 'Brief professional summary or objective.'}
-                        </Typography>
-                    </Box>
-
-                    {/* Contact Info */}
-                    <Grid container spacing={0.5} mb={2} justifyContent="center">
-                        <Grid item xs={12} sm={4}>
-                            <ContactInfo label="Email" value={basicDetails?.email || 'email@example.com'} size={fontConfig.contactSize} />
-                        </Grid>
-                        <Grid item xs={12} sm={4}>
-                            <ContactInfo label="Phone" value={basicDetails?.phone || '+1234567890'} size={fontConfig.contactSize} />
-                        </Grid>
-                        <Grid item xs={12} sm={4}>
-                            <ContactInfo
-                                label="Address"
-                                value={`${basicDetails?.address || ''}, ${basicDetails?.city || ''}, ${basicDetails?.state || ''} - ${basicDetails?.pincode || ''}`}
-                                size={fontConfig.contactSize}
-                            />
-                        </Grid>
-                    </Grid>
+        <div style={{
+            maxWidth: 750, margin: '10px auto', padding: 32,
+            minHeight: font.minHeight, fontFamily: font.bodyFont,
+            color: '#1f2937', backgroundColor: '#fff', lineHeight: 1.35,
+            border: '1px solid #e5e7eb',
+        }}>
+            <div style={{ textAlign: 'center', marginBottom: 20 }}>
+                {basicDetails.image ? <img src={basicDetails.image} alt="" style={{
+                    width: 88, height: 88, objectFit: 'cover', borderRadius: '50%',
+                    border: '2px solid #374151', marginBottom: 10,
+                }} /> : null}
+                <div style={{ fontSize: font.nameSize, fontWeight: 700, letterSpacing: 1, lineHeight: 1.1 }}>
+                    {basicDetails.name || 'Your Name'}
                 </div>
-                <div>
-                    {basicDetails?.image && <img src={basicDetails?.image} alt="Preview" style={{ width: 100, height: 100, borderRadius: '50%', marginTop: 10 }} />}
-
+                <div style={{ fontSize: font.introSize, color: '#4b5563', fontStyle: 'italic', marginTop: 6, lineHeight: 1.45 }}>
+                    {basicDetails.intro || 'Brief professional summary or objective.'}
+                </div>
+                <div style={{ fontSize: font.contactSize, color: '#4b5563', marginTop: 8, lineHeight: 1.5 }}>
+                    {contact.join('  ·  ')}
                 </div>
             </div>
 
-            <Divider sx={{ mb: 1 }} />
+            <div style={{ borderTop: '2px solid #374151', marginBottom: 20 }} />
 
-            {/* Education */}
-            <SectionTwoColumn
-                title="Education"
-                items={education}
-                render={(e) => (
-                    <>
-                        <strong>{e.degree || '-'}</strong> &mdash; {e.institution || '-'}
-                        <br />
-                        {e.startYear || '-'} to {e.endYear || '-'}, {e.location || '-'}
-                        <br />
-                        Percentage: {e.percentage || '-'}%
-                    </>
-                )}
-                fontConfig={fontConfig}
-            />
-
-            {/* Experience */}
-            <SectionTwoColumn
-                title="Experience"
-                items={experience}
-                render={(e) => (
-                    <>
-                        <strong>{e.position || '-'}</strong> @ {e.organization || '-'}
-                        <br />
-                        {e.joiningDate || '-'} to {e.leavingDate || 'Present'}, {e.joiningLocation || '-'}
-                        <br />
-                        CTC: {e.CTC || '-'}
-                        <br />
-                        Tech: {Array.isArray(e.technologies) ? e.technologies.join(', ') : e.technologies || '-'}
-                    </>
-                )}
-                fontConfig={fontConfig}
-            />
-
-            {/* Projects */}
-            <SectionTwoColumn
-                title="Projects"
-                items={project}
-                render={(p) => (
-                    <>
-                        <strong>{p.title || '-'}</strong>{" "}
-                        (<strong>Team:</strong> {p.teamSize || '-'},{" "}
-                        <strong>Duration:</strong> {p.duration || '-'})
-                        <br />
-                        <strong>Desc:</strong> {p.description || '-'}
-                        <br />
-                        <strong>Tech:</strong>{" "}
-                        {Array.isArray(p.technologies) ? p.technologies.join(', ') : p.technologies || '-'}
-                    </>
-                )}
-
-                fontConfig={fontConfig}
-            />
-
-            {/* Skills */}
-            <SectionTwoColumn
-                title="Skills"
-                items={skill}
-                render={(s) => (
-                    <>
-                        {s.skillName || '-'} <em>({s.level || '-'}%)</em>
-                    </>
-                )}
-                fontConfig={fontConfig}
-            />
-
-            {/* Social Profiles - updated as requested */}
-            <div style={{ marginTop: 24 }}>
-                <h3 style={{ fontSize: fontConfig.headingSize, marginBottom: 10, lineHeight: 1.1 }}>
-                    Social Profiles
-                </h3>
-                {socialProfile.length > 0 ? (
-                    socialProfile.map((profile, index) => (
-                        <div key={index} style={{ fontSize: fontConfig.itemSize, marginBottom: 6, lineHeight: 1.1 }}>
-                            <strong>{profile.platform || "Platform"}:</strong>{" "}
-                            {profile.url ? (
-                                <a href={profile.url} target="_blank" rel="noreferrer">
-                                    {profile.url}
-                                </a>
-                            ) : (
-                                "No URL"
-                            )}
-                        </div>
-                    ))
-                ) : (
-                    <div style={{ fontSize: fontConfig.itemSize, color: "#999", lineHeight: 1.1 }}>
-                        No social profile provided
-                    </div>
-                )}
+            <div style={{ marginBottom: 20 }}>
+                <Heading>Experience</Heading>
+                {experience.length === 0 ? <Empty /> : experience.map((item, i) => <Entry
+                    key={i}
+                    title={item.position || '-'}
+                    subtitle={[item.organization, item.joiningLocation].filter(Boolean).join(', ')}
+                    right={dateRange(item.joiningDate, item.leavingDate)}
+                    meta={[item.CTC ? `CTC: ${item.CTC}` : '', joinTech(item.technologies)].filter(Boolean).join('  ·  ')}
+                />)}
             </div>
-        </Paper>
+
+            <div style={{ marginBottom: 20 }}>
+                <Heading>Education</Heading>
+                {education.length === 0 ? <Empty /> : education.map((item, i) => <Entry
+                    key={i}
+                    title={item.degree || '-'}
+                    subtitle={[item.institution, item.location].filter(Boolean).join(', ')}
+                    right={dateRange(item.startYear, item.endYear, '')}
+                    meta={item.percentage ? `${item.percentage}%` : ''}
+                />)}
+            </div>
+
+            <div style={{ marginBottom: 20 }}>
+                <Heading>Projects</Heading>
+                {project.length === 0 ? <Empty /> : project.map((item, i) => <Entry
+                    key={i}
+                    title={item.title || '-'}
+                    right={item.duration}
+                    meta={[item.teamSize ? `Team of ${item.teamSize}` : '', joinTech(item.technologies)].filter(Boolean).join('  ·  ')}
+                    body={item.description}
+                />)}
+            </div>
+
+            <div style={{ marginBottom: 20 }}>
+                <Heading>Skills</Heading>
+                {skill.length === 0 ? <Empty /> : <div style={{ fontSize: font.itemSize, lineHeight: 1.7 }}>
+                    {skill.map((item) => `${item.skillName || '-'}${item.level ? ` (${item.level}%)` : ''}`).join('  ·  ')}
+                </div>}
+            </div>
+
+            <div>
+                <Heading>Social Profiles</Heading>
+                {socialProfile.length === 0 ? <Empty /> : socialProfile.map((item, i) => <div key={i} style={{
+                    fontSize: font.itemSize, marginBottom: 4, wordBreak: 'break-word',
+                }}>
+                    <strong>{item.platform || 'Platform'}:</strong> {item.url || 'No URL'}
+                </div>)}
+            </div>
+        </div>
     );
 };
-
-const ContactInfo = ({ label, value, size }) => (
-    <Typography
-        variant="body2"
-        sx={{
-            fontSize: size,
-            lineHeight: 1.1,
-            mb: 0.3
-        }}
-    >
-        <strong>{label}:</strong> {value}
-    </Typography>
-);
-
-const SectionTwoColumn = ({ title, items = [], render, fontConfig }) => (
-    <Box my={1.5}>
-        <Typography
-            variant="h6"
-            sx={{
-                fontWeight: 'bold',
-                fontSize: fontConfig.headingSize,
-                mb: 0.5,
-                borderBottom: '1px solid #bbb',
-                paddingBottom: 0.7,
-                color: '#333',
-                lineHeight: 1.1,
-            }}
-        >
-            {title}
-        </Typography>
-        {items.length === 0 ? (
-            <Typography sx={{ fontSize: fontConfig.itemSize, color: '#999', lineHeight: 1.1 }}>
-                No data available
-            </Typography>
-        ) : (
-            items.map((item, idx) => (
-                <Grid container key={idx} spacing={0} sx={{ mb: 0.5, lineHeight: 1.1 }}>
-                    <Grid
-                        item
-                        xs={4}
-                        sx={{ fontWeight: 'bold', fontSize: fontConfig.itemSize, color: '#555', lineHeight: 1.1, marginRight: "3px" }}
-                    >
-                        {
-                            // console.log(title)
-                            title == "Skills" ? "" :
-                                (title == "Education" || title == "Experience") ? `${title} ${idx + 1} `
-                                    : `${title.slice(0, -1)} ${idx + 1} `
-                        }
-                    </Grid>
-                    <Grid item xs={8} sx={{ fontSize: fontConfig.itemSize, lineHeight: 1.1 }}>
-                        {render(item)}
-                    </Grid>
-                </Grid>
-            ))
-        )}
-    </Box>
-);
 
 export default ClassicTemplate;

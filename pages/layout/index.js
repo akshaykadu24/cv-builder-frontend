@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
-import ClassicTemplate from '@/components/templates/ClassicTemplate';
-import ModernTemplate from '@/components/templates/ModernTemplate';
-import SidebarTemplate from '@/components/templates/SidebarTemplate';
+import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import Navbar from '@/components/Navbar';
+import { TEMPLATES } from '@/components/templates/registry';
+import { Box, Button, Chip, Container, Paper, Stack, Typography } from '@mui/material';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import DashboardCustomizeOutlinedIcon from '@mui/icons-material/DashboardCustomizeOutlined';
 
+/** Filled-in sample so each preview shows a realistic shape, not empty sections. */
 const sampleData = {
     basicDetails: {
         name: "John Doe",
@@ -14,111 +16,197 @@ const sampleData = {
         city: "City",
         state: "State",
         pincode: "123456",
-        intro: "A brief intro goes here.",
-        image: ""
+        intro: "Full stack developer with a focus on React and Node.",
+        image: "/profile-placeholder.svg"
     },
-    education: [],
-    experience: [],
-    project: [],
-    skill: [],
-    socialProfile: []
+    education: [
+        { degree: "B.E. Computer Science", institution: "State University", percentage: "78", startYear: "2016", endYear: "2020", location: "City" },
+    ],
+    experience: [
+        { organization: "Acme Corp", joiningLocation: "City", position: "Senior Developer", CTC: "12 LPA", joiningDate: "2022", leavingDate: "", technologies: "React, Node, AWS" },
+        { organization: "Globex", joiningLocation: "City", position: "Developer", CTC: "8 LPA", joiningDate: "2020", leavingDate: "2022", technologies: "Vue, Express" },
+    ],
+    project: [
+        { title: "Resume Builder", teamSize: "3", duration: "6 months", technologies: "Next.js, MUI", description: "Template driven CV builder with PDF export." },
+    ],
+    skill: [
+        { skillName: "React", level: "90" },
+        { skillName: "Node.js", level: "80" },
+        { skillName: "AWS", level: "65" },
+    ],
+    socialProfile: [
+        { platform: "GitHub", url: "github.com/johndoe" },
+    ],
 };
 
-const templates = [
-    { name: 'Classic', Component: ClassicTemplate },
-    { name: 'Modern', Component: ModernTemplate },
-    { name: 'Sidebar', Component: SidebarTemplate }
-];
+/* Templates render on a stable 800px canvas. ResizeObserver calculates the
+   exact scale needed to fill each card, so there is no unused side padding. */
+const PREVIEW_WIDTH = 800;
+const PREVIEW_HEIGHT = 460;
+
+const TemplatePreview = ({ Component }) => {
+    const containerRef = useRef(null);
+    const [scale, setScale] = useState(0.38);
+
+    useEffect(() => {
+        const container = containerRef.current;
+        if (!container) return;
+
+        const updateScale = () => {
+            const nextScale = Math.min(container.clientWidth / PREVIEW_WIDTH, 1);
+            setScale(nextScale);
+        };
+
+        updateScale();
+        const observer = new ResizeObserver(updateScale);
+        observer.observe(container);
+        return () => observer.disconnect();
+    }, []);
+
+    return (
+        <Box ref={containerRef} sx={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+            <Box
+                sx={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: PREVIEW_WIDTH,
+                    transform: `scale(${scale})`,
+                    transformOrigin: 'top left',
+                    pointerEvents: 'none',
+                    /* Gallery-only override: template roots have 10px auto margins and
+                       different max widths for the editor/PDF. Remove those only in
+                       this preview so the scaled page fills the card exactly. */
+                    '& > div': {
+                        width: '100% !important',
+                        maxWidth: 'none !important',
+                        margin: '0 !important',
+                    },
+                }}
+            >
+                <Component
+                    data={{
+                        ...sampleData,
+                        fontConfig: { minHeight: `${PREVIEW_HEIGHT / scale}px` },
+                    }}
+                />
+            </Box>
+        </Box>
+    );
+};
 
 const Layout = () => {
     const router = useRouter();
-    const [selected, setSelected] = useState(null); // No selected by default
 
-    const handleTemplateSelect = (layoutName) => {
-        setSelected(layoutName);
-        router.push(`/editor?template=${layoutName}`);
+    const handleTemplateSelect = (value) => {
+        router.push(`/editor?template=${value}`);
     };
 
     return (
-        <div>
+        <Box sx={{ minHeight: '100vh', bgcolor: 'grey.100' }}>
             <Navbar />
-            <div style={{ padding: 20, maxWidth: 1200, margin: '0 auto' }}>
-                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 30, marginTop: 20 }}>
-                    <h2
-                        style={{
-                            fontSize: '2.2rem',
-                            fontWeight: '700',
-                            letterSpacing: '0.5px',
-                            color: '#1a1a1a',
-                            borderBottom: '2px solid #1976d2',
-                            paddingBottom: '8px',
-                            margin: 0
-                        }}
-                    >
-                        Choose a Resume Template
-                    </h2>
-                </div>
 
+            <Container maxWidth="xl" sx={{ py: { xs: 3, md: 5 } }}>
+                <Stack spacing={1} alignItems="center" sx={{ mb: { xs: 3, md: 4 }, textAlign: 'center' }}>
+                    <Stack direction="row" spacing={1.5} alignItems="center">
+                        <DashboardCustomizeOutlinedIcon color="primary" />
+                        <Typography variant="h4" fontWeight={700} sx={{ fontSize: { xs: 24, sm: 30, md: 34 } }}>
+                            Choose a Resume Template
+                        </Typography>
+                    </Stack>
+                    <Typography color="text.secondary" sx={{ fontSize: { xs: 14, md: 16 } }}>
+                        Pick a starting point. You can switch templates at any time from the editor.
+                    </Typography>
+                    <Chip size="small" label={`${TEMPLATES.length} templates`} color="primary" variant="outlined" />
+                </Stack>
 
-                <div
-                    style={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        flexWrap: 'wrap',
-                        gap: 40,
+                <Box
+                    sx={{
+                        display: 'grid',
+                        gridTemplateColumns: {
+                            xs: '1fr',
+                            md: 'repeat(2, minmax(0, 1fr))',
+                            xl: 'repeat(3, minmax(0, 1fr))',
+                        },
+                        gap: { xs: 2.5, md: 3 },
                     }}
                 >
-                    {templates.map(({ name, Component }) => {
-                        const isSelected = selected === name.toLowerCase();
-
-                        return (
-                            <div
-                                key={name}
-                                onClick={() => handleTemplateSelect(name.toLowerCase())}
-                                style={{
-                                    cursor: 'pointer',
-                                    border: isSelected ? '3px solid #1a73e8' : '2px solid #ccc',
-                                    borderRadius: 8,
-                                    boxShadow: isSelected ? '0 0 15px rgba(26, 115, 232, 0.7)' : '0 0 10px rgba(0,0,0,0.1)',
-                                    backgroundColor: 'white',
-                                    transform: isSelected ? 'scale(1)' : 'scale(0.8)', // zoom only if selected
-                                    transformOrigin: 'top left',
-                                    transition: 'transform 0.3s ease, box-shadow 0.3s ease, border 0.3s ease',
-                                    flex: '0 1 auto',
-                                    width: 300,
-                                    maxWidth: '100%',
-                                }}
-                                onMouseEnter={e => {
-                                    e.currentTarget.style.transform = 'scale(1)';
-                                    e.currentTarget.style.boxShadow = '0 0 15px rgba(26, 115, 232, 0.7)';
-                                    // e.currentTarget.style.border = '3px solid #1a73e8';
-                                }}
-                                onMouseLeave={e => {
-                                    if (!isSelected) {
-                                        e.currentTarget.style.transform = 'scale(0.8)';
-                                        e.currentTarget.style.boxShadow = '0 0 10px rgba(0,0,0,0.1)';
-                                        e.currentTarget.style.border = '2px solid #ccc';
-                                    }
+                    {TEMPLATES.map(({ value, label, description, Component }) => (
+                        <Paper
+                            key={value}
+                            onClick={() => handleTemplateSelect(value)}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    handleTemplateSelect(value);
+                                }
+                            }}
+                            sx={{
+                                borderRadius: 3,
+                                overflow: 'hidden',
+                                cursor: 'pointer',
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                transition: 'box-shadow .3s ease, transform .3s ease, border-color .3s ease',
+                                boxShadow: '0 1px 2px rgba(16,24,40,.06), 0 10px 24px -14px rgba(16,24,40,.14)',
+                                '&:hover, &:focus-visible': {
+                                    borderColor: 'primary.main',
+                                    transform: 'translateY(-4px)',
+                                    boxShadow: '0 1px 2px rgba(16,24,40,.06), 0 20px 40px -12px rgba(25,118,210,.28)',
+                                },
+                                '&:hover .previewOverlay, &:focus-visible .previewOverlay': { opacity: 1 },
+                            }}
+                        >
+                            {/* Scaled preview window */}
+                            <Box
+                                sx={{
+                                    position: 'relative',
+                                    height: PREVIEW_HEIGHT,
+                                    overflow: 'hidden',
+                                    bgcolor: 'grey.200',
+                                    borderBottom: '1px solid',
+                                    borderColor: 'divider',
                                 }}
                             >
-                                <Component data={{ ...sampleData, fontConfig: { minHeight: "500px" } }} />
-                            </div>
-                        );
-                    })}
-                </div>
+                                <TemplatePreview Component={Component} />
 
-                <style jsx>{`
-        @media (max-width: 900px) {
-          div[style*="display: flex"] > div {
-            width: 90% !important;
-            transform: scale(1) !important;
-            border: 2px solid #ccc !important;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1) !important;
-          }
-        }
-      `}</style>
-            </div>
-        </div>
+                                <Box
+                                    className="previewOverlay"
+                                    sx={{
+                                        position: 'absolute',
+                                        inset: 0,
+                                        display: 'flex',
+                                        alignItems: 'flex-end',
+                                        justifyContent: 'center',
+                                        pb: 2,
+                                        opacity: 0,
+                                        transition: 'opacity .3s ease',
+                                        background: 'linear-gradient(to top, rgba(15,23,42,.72), transparent 55%)',
+                                    }}
+                                >
+                                    <Button
+                                        variant="contained"
+                                        endIcon={<ArrowForwardIcon />}
+                                        sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
+                                    >
+                                        Use this template
+                                    </Button>
+                                </Box>
+                            </Box>
+
+                            <Box sx={{ p: 2 }}>
+                                <Typography fontWeight={700}>{label}</Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                                    {description}
+                                </Typography>
+                            </Box>
+                        </Paper>
+                    ))}
+                </Box>
+            </Container>
+        </Box>
     );
 };
 

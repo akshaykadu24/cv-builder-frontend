@@ -1,203 +1,128 @@
-import React from "react";
+import React from 'react';
+import { dateRange, formatAddress, getFontConfig, joinTech, levelToPercent } from './templateUtils';
 
+const BLUE = '#1d4ed8';
+const NAVY = '#172554';
+
+/** Modern resume with a strong blue header, cards, tags and skill bars. */
 const ModernTemplate = ({ data }) => {
     const {
-        basicDetails = {},
-        education = [],
-        experience = [],
-        project = [],
-        skill = [],
-        socialProfile = [],
+        basicDetails = {}, education = [], experience = [],
+        project = [], skill = [], socialProfile = [],
     } = data || {};
 
-    const fontConfig = {
-        nameSize: data?.fontConfig?.nameSize || 34,
-        introSize: data?.fontConfig?.introSize || 14,
-        contactSize: data?.fontConfig?.contactSize || 12,
-        headingSize: data?.fontConfig?.headingSize || 15,
-        itemSize: data?.fontConfig?.itemSize || 14,
-        minHeight: data?.fontConfig?.minHeight || '950px',
-        bodyFont: data?.fontConfig?.bodyFont || "Georgia, serif",
-    };
+    const font = getFontConfig(data, {
+        nameSize: 34, headingSize: 15, itemSize: 12.5,
+        bodyFont: 'Arial, Helvetica, sans-serif',
+    });
 
-    return (
-        <div
-            style={{
-                fontFamily: fontConfig.bodyFont,
-                backgroundColor: "#f5f7fa",
-                borderRadius: 12,
-                padding: 24,
-                maxWidth: 800,
-                margin: "10px auto",
-                color: "#333",
-                lineHeight: 1.15,
-                minHeight: fontConfig.minHeight,
-            }}
-        >
-            <div style={{ display: "flex", }}>
-                <div>
+    const Heading = ({ children }) => <div style={{
+        fontSize: font.headingSize, fontWeight: 800, color: NAVY,
+        textAlign: font.headingAlign,
+        textTransform: 'uppercase', letterSpacing: 1.2,
+        borderLeft: `4px solid ${BLUE}`, paddingLeft: 9, marginBottom: 11,
+    }}>{children}</div>;
 
-                    {/* Name */}
-                    <h1
-                        style={{
-                            fontSize: fontConfig.nameSize,
-                            fontWeight: "700",
-                            marginBottom: 8,
-                            color: "#1a73e8",
-                            lineHeight: 1.1,
-                        }}
-                    >
-                        {basicDetails.name || "Your Name"}
-                    </h1>
+    const Empty = () => <div style={{ fontSize: font.itemSize, color: '#94a3b8' }}>Not provided</div>;
 
-                    {/* Intro */}
-                    <p
-                        style={{
-                            fontSize: fontConfig.introSize,
-                            fontStyle: "italic",
-                            marginBottom: 20,
-                            color: "#555",
-                            lineHeight: 1.1,
-                        }}
-                    >
-                        {basicDetails.intro || "A short introduction about yourself goes here."}
-                    </p>
+    const Entry = ({ title, subtitle, right, meta, body }) => <div style={{
+        backgroundColor: '#f8fafc', border: '1px solid #e2e8f0',
+        borderRadius: 6, padding: 11, marginBottom: 9,
+    }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <div style={{ fontSize: font.itemSize + 1, fontWeight: 700, color: '#0f172a', paddingRight: 8 }}>{title}</div>
+            {right ? <div style={{ fontSize: font.itemSize - 1, color: BLUE, fontWeight: 700, whiteSpace: 'nowrap' }}>{right}</div> : null}
+        </div>
+        {subtitle ? <div style={{ fontSize: font.itemSize, color: '#475569', marginTop: 2 }}>{subtitle}</div> : null}
+        {meta ? <div style={{ fontSize: font.itemSize - 0.5, color: '#64748b', marginTop: 3 }}>{meta}</div> : null}
+        {body ? <div style={{ fontSize: font.itemSize, color: '#334155', lineHeight: 1.45, marginTop: 4 }}>{body}</div> : null}
+    </div>;
 
-                    {/* Contact Info */}
-                    <div
-                        style={{
-                            fontSize: fontConfig.contactSize,
-                            marginBottom: 20,
-                            lineHeight: 1.15,
-                            borderLeft: "4px solid #1a73e8",
-                            paddingLeft: 12,
-                            color: "#444",
-                        }}
-                    >
-                        <div style={{ marginBottom: 4 }}>
-                            <strong>Email:</strong> {basicDetails.email || "email@example.com"}
-                        </div>
-                        <div style={{ marginBottom: 4 }}>
-                            <strong>Phone:</strong> {basicDetails.phone || "+1234567890"}
-                        </div>
-                        <div>
-                            <strong>Address:</strong>{" "}
-                            {`${basicDetails.address || ""}, ${basicDetails.city || ""}, ${basicDetails.state || ""
-                                } - ${basicDetails.pincode || ""}`}
-                        </div>
-                    </div>
+    const contact = [basicDetails.email || 'email@example.com', basicDetails.phone, formatAddress(basicDetails)].filter(Boolean);
+
+    return <div style={{
+        maxWidth: 780, margin: '10px auto', minHeight: font.minHeight,
+        fontFamily: font.bodyFont, backgroundColor: '#fff', color: '#1e293b',
+        lineHeight: 1.3, border: '1px solid #dbeafe',
+    }}>
+        <div style={{
+            padding: 24, color: '#fff', backgroundColor: NAVY,
+            display: 'flex', alignItems: 'center', borderBottom: `5px solid ${BLUE}`,
+        }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: font.nameSize, fontWeight: 800, lineHeight: 1.1, letterSpacing: 0.4 }}>
+                    {basicDetails.name || 'Your Name'}
                 </div>
-                <div>
-                    {basicDetails?.image && <img src={basicDetails?.image} alt="Preview" style={{ width: 100, height: 100, borderRadius: '50%', marginTop: 10 }} />}
+                <div style={{ fontSize: font.introSize, color: '#bfdbfe', marginTop: 6, lineHeight: 1.45 }}>
+                    {basicDetails.intro || 'A short introduction about yourself goes here.'}
+                </div>
+                <div style={{ fontSize: font.contactSize, color: '#e0e7ff', marginTop: 9, lineHeight: 1.55 }}>
+                    {contact.join('  ·  ')}
+                </div>
+            </div>
+            {basicDetails.image ? <img src={basicDetails.image} alt="" style={{
+                width: 88, height: 88, objectFit: 'cover', borderRadius: 10,
+                border: '3px solid #60a5fa', marginLeft: 18, flexShrink: 0,
+            }} /> : null}
+        </div>
 
+        <div style={{ padding: 24 }}>
+            <div style={{ marginBottom: 22 }}>
+                <Heading>Experience</Heading>
+                {experience.length === 0 ? <Empty /> : experience.map((item, i) => <Entry
+                    key={i} title={item.position || '-'}
+                    subtitle={[item.organization, item.joiningLocation].filter(Boolean).join(', ')}
+                    right={dateRange(item.joiningDate, item.leavingDate)}
+                    meta={[item.CTC ? `CTC: ${item.CTC}` : '', joinTech(item.technologies)].filter(Boolean).join('  ·  ')}
+                />)}
+            </div>
+
+            <div style={{ marginBottom: 22 }}>
+                <Heading>Projects</Heading>
+                {project.length === 0 ? <Empty /> : project.map((item, i) => <Entry
+                    key={i} title={item.title || '-'} right={item.duration}
+                    meta={[item.teamSize ? `Team of ${item.teamSize}` : '', joinTech(item.technologies)].filter(Boolean).join('  ·  ')}
+                    body={item.description}
+                />)}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                <div style={{ width: '52%', paddingRight: 12 }}>
+                    <Heading>Education</Heading>
+                    {education.length === 0 ? <Empty /> : education.map((item, i) => <div key={i} style={{ marginBottom: 10 }}>
+                        <div style={{ fontSize: font.itemSize + 0.5, fontWeight: 700 }}>{item.degree || '-'}</div>
+                        <div style={{ fontSize: font.itemSize, color: '#475569' }}>{item.institution || '-'}</div>
+                        <div style={{ fontSize: font.itemSize - 1, color: '#64748b', marginTop: 2 }}>
+                            {[dateRange(item.startYear, item.endYear, ''), item.percentage ? `${item.percentage}%` : '', item.location].filter(Boolean).join('  ·  ')}
+                        </div>
+                    </div>)}
+                </div>
+
+                <div style={{ width: '48%', paddingLeft: 12, borderLeft: '1px solid #e2e8f0' }}>
+                    <Heading>Skills</Heading>
+                    {skill.length === 0 ? <Empty /> : skill.map((item, i) => <div key={i} style={{ marginBottom: 8 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: font.itemSize, marginBottom: 3 }}>
+                            <strong>{item.skillName || '-'}</strong><span style={{ color: '#64748b' }}>{item.level ? `${item.level}%` : ''}</span>
+                        </div>
+                        <div style={{ height: 6, borderRadius: 3, backgroundColor: '#dbeafe' }}>
+                            <div style={{ width: `${levelToPercent(item.level)}%`, height: 6, borderRadius: 3, backgroundColor: BLUE }} />
+                        </div>
+                    </div>)}
                 </div>
             </div>
 
-            {/* Education */}
-            <Section
-                title="Education"
-                items={education}
-                titleSize={fontConfig.headingSize}
-                itemSize={fontConfig.itemSize}
-                render={(e) =>
-                    `${e?.degree}, ${e?.institution} ${e?.percentage ? `(${e?.percentage}%),` : ""} ${e?.startYear
-                    } - ${e?.endYear}, ${e?.location}`
-                }
-            />
-
-            {/* Experience */}
-            <Section
-                title="Experience"
-                items={experience}
-                titleSize={fontConfig.headingSize}
-                itemSize={fontConfig.itemSize}
-                render={(e) =>
-                    `${e.position || "-"} @ ${e.organization || "-"} (${e.joiningDate || "-"} - ${e.leavingDate || "Present"
-                    }), ${e.joiningLocation || "-"}, CTC: ${e.CTC || "-"}, Tech: ${Array.isArray(e.technologies) ? e.technologies.join(", ") : e.technologies || "-"
-                    }`
-                }
-            />
-
-            {/* Projects */}
-            <Section
-                title="Projects"
-                items={project}
-                titleSize={fontConfig.headingSize}
-                itemSize={fontConfig.itemSize}
-                render={(p) => (
-                    <>
-                        <strong>{p.title || '-'}</strong>,{" "}<br />
-                        <strong>Team:</strong> {p.teamSize || '-'},{" "}<br />
-                        <strong>Duration:</strong> {p.duration || '-'},{" "}<br />
-                        <strong>Tech:</strong> {Array.isArray(p.technologies) ? p.technologies.join(", ") : p.technologies || "-"} —{" "}<br />
-                        <strong>Desc:</strong> {p.description || '-'}
-                    </>
-                )}
-
-            />
-
-            {/* Skills */}
-            <Section
-                title="Skills"
-                items={skill}
-                titleSize={fontConfig.headingSize}
-                itemSize={fontConfig.itemSize}
-                render={(s) => `${s.skillName || "-"} (${s.level || "-"}%)`}
-            />
-
-            {/* Social Profiles */}
-            <div style={{ marginTop: 24 }}>
-                <h3 style={{ fontSize: fontConfig.headingSize, marginBottom: 10, lineHeight: 1.1 }}>
-                    Social Profiles
-                </h3>
-                {socialProfile.length > 0 ? (
-                    socialProfile.map((profile, index) => (
-                        <div key={index} style={{ fontSize: fontConfig.itemSize, marginBottom: 6, lineHeight: 1.1 }}>
-                            <strong>{profile.platform || "Platform"}:</strong>{" "}
-                            {profile.url ? (
-                                <a href={profile.url} target="_blank" rel="noreferrer">
-                                    {profile.url}
-                                </a>
-                            ) : (
-                                "No URL"
-                            )}
-                        </div>
-                    ))
-                ) : (
-                    <div style={{ fontSize: fontConfig.itemSize, color: "#999", lineHeight: 1.1 }}>
-                        No social profile provided
-                    </div>
-                )}
+            <div style={{ marginTop: 22 }}>
+                <Heading>Social Profiles</Heading>
+                {socialProfile.length === 0 ? <Empty /> : <div>
+                    {socialProfile.map((item, i) => <span key={i} style={{
+                        display: 'inline-block', fontSize: font.itemSize, color: BLUE,
+                        backgroundColor: '#eff6ff', border: '1px solid #bfdbfe',
+                        borderRadius: 12, padding: '4px 9px', marginRight: 7, marginBottom: 6,
+                    }}><strong>{item.platform || 'Platform'}:</strong> {item.url || 'No URL'}</span>)}
+                </div>}
             </div>
         </div>
-    );
+    </div>;
 };
-
-const Section = ({ title, items = [], render, titleSize, itemSize }) => (
-    <div style={{ marginBottom: 24 }}>
-        <h3
-            style={{
-                fontSize: titleSize,
-                marginBottom: 10,
-                borderBottom: "2px solid #1a73e8",
-                paddingBottom: 4,
-                lineHeight: 1.1,
-            }}
-        >
-            {title}
-        </h3>
-        {items.length === 0 ? (
-            <p style={{ fontSize: itemSize, color: "#999", lineHeight: 1.1 }}>No data available</p>
-        ) : (
-            <ul style={{ fontSize: itemSize, paddingLeft: 20, margin: 0, lineHeight: 1.3 }}>
-                {items.map((item, index) => (
-                    <li key={index} style={{ marginBottom: 6 }}>
-                        {render(item)}
-                    </li>
-                ))}
-            </ul>
-        )}
-    </div>
-);
 
 export default ModernTemplate;
